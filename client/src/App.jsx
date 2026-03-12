@@ -35,6 +35,7 @@ function App() {
 
   useEffect(() => {
     fetchVehicles();
+    document.title = "Automotores Marcos | Stock";
   }, []);
 
   const fetchVehicles = async () => {
@@ -88,15 +89,19 @@ function App() {
   return (
     <div className="min-h-screen pb-12 font-sans">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-30 transition-all duration-300">
+      <header className="bg-slate-950/80 backdrop-blur-xl border-b border-white/5 sticky top-0 z-30 transition-all duration-300">
         <div className="max-w-[1600px] mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3 group cursor-pointer">
-            <div className="bg-slate-900 p-2.5 rounded-2xl text-white shadow-lg shadow-slate-200 group-hover:rotate-6 transition-transform duration-300">
-              <Car size={26} />
+          <div className="flex items-center gap-4 group cursor-pointer animate-fade-in">
+            <div className="bg-white p-1.5 rounded-2xl shadow-xl shadow-blue-500/20 group-hover:scale-105 transition-all duration-300 animate-float">
+              <img 
+                src="/logo_original.png" 
+                alt="Automotores Marcos" 
+                className="h-12 w-auto object-contain"
+              />
             </div>
-            <div>
-              <h1 className="text-xl font-black tracking-tighter text-slate-900 uppercase">StockExpert</h1>
-              <p className="text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase -mt-1">Gestión Premium</p>
+            <div className="hidden sm:block">
+              <h1 className="text-xl font-black tracking-tighter text-white uppercase leading-none">Automotores Marcos</h1>
+              <p className="text-[10px] font-bold text-blue-400/80 tracking-[0.2em] uppercase mt-1">Gestión Profesional</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -120,7 +125,7 @@ function App() {
 
       <main className="max-w-[1600px] mx-auto px-6 mt-10">
         {/* Filters & Stats */}
-        <div className="flex flex-col lg:flex-row gap-6 mb-8 items-center justify-between animate-in slide-in-from-top duration-500">
+        <div className="flex flex-col lg:flex-row gap-6 mb-8 items-center justify-between animate-fade-in">
           <div className="flex flex-wrap gap-3 items-center w-full lg:w-auto">
             <div className="relative flex-grow sm:flex-grow-0">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -146,8 +151,8 @@ function App() {
               onClick={() => setShowNoPhotosOnly(!showNoPhotosOnly)}
               className={`px-4 py-2.5 rounded-xl border font-semibold transition-all flex items-center gap-2.5 shadow-sm sm:w-auto w-full justify-center ${
                 showNoPhotosOnly 
-                ? 'bg-amber-50 border-amber-200 text-amber-700' 
-                : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                ? 'bg-amber-500/10 border-amber-500/50 text-amber-500' 
+                : 'bg-slate-900 border-white/5 text-slate-400 hover:border-white/10'
               }`}
             >
               <AlertCircle size={18} className={showNoPhotosOnly ? 'animate-pulse' : ''} />
@@ -155,16 +160,16 @@ function App() {
             </button>
           </div>
           
-          <div className="bg-white/50 px-4 py-2 rounded-full border border-slate-100 text-[13px] text-slate-500 font-bold tracking-tight shadow-sm">
-            <span className="text-slate-900">{filteredVehicles.length}</span> VEHÍCULOS EN STOCK
+          <div className="bg-white/5 px-4 py-2 rounded-full border border-white/5 text-[13px] text-slate-400 font-bold tracking-tight shadow-sm">
+            <span className="text-blue-400">{filteredVehicles.length}</span> VEHÍCULOS EN STOCK
           </div>
         </div>
 
         {/* Dashboard Table */}
-        <div className="table-container animate-in fade-in duration-1000 slide-in-from-bottom-4">
+        <div className="table-container animate-fade-in mb-20 overflow-hidden">
           <table className="w-full text-left border-collapse min-w-[1200px]">
             <thead>
-              <tr className="bg-slate-50/50 border-b border-slate-100 text-slate-500 font-bold text-[11px] uppercase tracking-[0.15em]">
+              <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-[11px] uppercase tracking-[0.15em]">
                 <th className="px-6 py-5">ID</th>
                 <th className="px-6 py-5">Marca</th>
                 <th className="px-6 py-5">Modelo</th>
@@ -191,29 +196,29 @@ function App() {
               ) : filteredVehicles.map((v, idx) => (
                 <tr 
                   key={v.id} 
-                  className="hover:bg-slate-50/80 transition-all duration-200 group animate-in fade-in slide-in-from-left duration-500"
+                  className="hover:bg-slate-50/80 transition-all duration-200 group animate-fade-in"
                   style={{ animationDelay: `${idx * 30}ms` }}
                 >
                   <td className="px-6 py-5 font-mono text-[10px] text-slate-300">#{v.id}</td>
                   <td className="px-6 py-5">
-                    <span className="font-black text-slate-900 text-sm">{v.brand}</span>
+                    <span className="font-extrabold text-slate-900 text-sm">{v.brand}</span>
                   </td>
-                  <td className="px-6 py-5 text-sm text-slate-600 font-medium">{v.model}</td>
+                  <td className="px-6 py-5 text-sm text-slate-600 font-bold">{v.model}</td>
                   <td className="px-6 py-5">
                     <span className="px-2 py-1 bg-slate-100 rounded text-[11px] font-mono font-bold text-slate-500 tracking-wider">
                       {v.license_plate || '---'}
                     </span>
                   </td>
-                  <td className="px-6 py-5 text-sm font-semibold text-slate-500">{v.year}</td>
-                  <td className="px-6 py-5 text-sm text-slate-500">{v.color || '-'}</td>
-                  <td className="px-6 py-5 text-sm text-slate-500 tabular-nums">
+                  <td className="px-6 py-5 text-sm font-bold text-slate-500">{v.year}</td>
+                  <td className="px-6 py-5 text-sm text-slate-500 font-medium">{v.color || '-'}</td>
+                  <td className="px-6 py-5 text-sm text-slate-500 tabular-nums font-medium">
                     {v.mileage?.toLocaleString() || 0} <span className="text-[10px] font-bold opacity-40 italic">KM</span>
                   </td>
                   <td className="px-6 py-5 text-right font-black text-blue-600 text-base tabular-nums">
                     ${v.price?.toLocaleString()}
                   </td>
                   <td className="px-6 py-5 text-center">
-                    <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">
+                    <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100 uppercase tracking-tighter">
                       {v.fuel}
                     </span>
                   </td>
@@ -222,7 +227,7 @@ function App() {
                     <button 
                       className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-300 ${
                         v.photoCount === 0 
-                        ? 'bg-amber-50 text-amber-600 border border-amber-100 hover:bg-amber-100' 
+                        ? 'bg-amber-50 text-amber-600 border border-amber-100 hover:bg-amber-100 shadow-sm' 
                         : 'bg-slate-50 text-slate-500 border border-slate-100 hover:bg-slate-100'
                       }`}
                       onClick={() => { setSelectedVehicle(v); setIsPhotoManagerOpen(true); }}
@@ -235,14 +240,14 @@ function App() {
                     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
                       <button 
                         onClick={() => { setEditingVehicle(v); setIsFormOpen(true); }}
-                        className="btn-action text-slate-400 hover:text-slate-900 hover:bg-slate-100"
+                        className="btn-action !text-slate-400 hover:!text-slate-900 hover:!bg-slate-100"
                         title="Editar Registro"
                       >
                         <Edit size={18} />
                       </button>
                       <button 
                         onClick={() => handleDelete(v.id)}
-                        className="btn-action text-slate-400 hover:text-red-600 hover:bg-red-50"
+                        className="btn-action !text-slate-400 hover:!text-red-600 hover:!bg-red-50"
                         title="Eliminar Registro"
                       >
                         <Trash2 size={18} />
