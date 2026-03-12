@@ -32,7 +32,24 @@ async function initDb() {
             filename TEXT NOT NULL,
             FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
         );
+
+        CREATE TABLE IF NOT EXISTS sales (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            vehicle_id INTEGER UNIQUE,
+            final_price REAL NOT NULL,
+            buyer_name TEXT,
+            buyer_province TEXT,
+            buyer_locality TEXT,
+            sale_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+            payment_method TEXT,
+            notes TEXT,
+            FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
+        );
     `);
+
+    // Migraciones rápidas para nuevas columnas
+    try { await db.exec("ALTER TABLE sales ADD COLUMN buyer_province TEXT;"); } catch(e) {}
+    try { await db.exec("ALTER TABLE sales ADD COLUMN buyer_locality TEXT;"); } catch(e) {}
 
     return db;
 }

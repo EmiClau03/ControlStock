@@ -27,6 +27,8 @@ export const importExcel = (file) => {
     });
 };
 export const getVehiclesNoPhotos = () => api.get('/stats/no-photos');
+export const recordSale = (data) => api.post('/sales', data);
+export const getSalesStats = () => api.get('/sales/stats');
 
 export default api;
 export { API_BASE_URL };

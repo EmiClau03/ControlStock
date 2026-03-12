@@ -17,6 +17,8 @@ import { getVehicles, deleteVehicle, API_BASE_URL } from './api';
 import VehicleForm from './components/VehicleForm';
 import PhotoManager from './components/PhotoManager';
 import ExcelImport from './components/ExcelImport';
+import StatisticsView from './components/StatisticsView';
+import SaleForm from './components/SaleForm';
 
 function App() {
   const [vehicles, setVehicles] = useState([]);
@@ -32,6 +34,8 @@ function App() {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isSaleFormOpen, setIsSaleFormOpen] = useState(false);
+  const [activeView, setActiveView] = useState('table'); // 'table' or 'statistics'
 
   useEffect(() => {
     fetchVehicles();
@@ -104,26 +108,46 @@ function App() {
               <p className="text-[10px] font-bold text-blue-400/80 tracking-[0.2em] uppercase mt-1">Gestión Profesional</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setIsImportOpen(true)}
-              className="btn-secondary group"
-            >
-              <FileUp size={18} className="group-hover:-translate-y-0.5 transition-transform" />
-              <span className="hidden sm:inline">Importar Stock</span>
-            </button>
-            <button 
-              onClick={() => { setEditingVehicle(null); setIsFormOpen(true); }}
-              className="btn-primary shadow-lg shadow-slate-200"
-            >
-              <Plus size={20} />
-              <span>Nuevo Vehículo</span>
-            </button>
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setIsImportOpen(true)}
+                className="btn-secondary group"
+              >
+                <FileUp size={18} className="group-hover:-translate-y-0.5 transition-transform text-white/60" />
+                <span className="hidden sm:inline text-white/80">Importar Stock</span>
+              </button>
+              <button 
+                onClick={() => { setEditingVehicle(null); setIsFormOpen(true); }}
+                className="btn-primary shadow-lg shadow-blue-500/20"
+              >
+                <Plus size={20} />
+                <span>Nuevo Vehículo</span>
+              </button>
+            </div>
+            
+            {/* Stats Toggle */}
+            <div className="flex bg-white/5 p-1 rounded-2xl border border-white/5 shadow-inner">
+              <button 
+                onClick={() => setActiveView('table')}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all tracking-widest uppercase ${activeView === 'table' ? 'bg-blue-600 text-white shadow-xl shadow-blue-900/40' : 'text-slate-500 hover:text-slate-300'}`}
+              >
+                Stock
+              </button>
+              <button 
+                onClick={() => setActiveView('statistics')}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all tracking-widest uppercase ${activeView === 'statistics' ? 'bg-blue-600 text-white shadow-xl shadow-blue-900/40' : 'text-slate-500 hover:text-slate-300'}`}
+              >
+                Estadísticas
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
       <main className="max-w-[1600px] mx-auto px-6 mt-10">
+        {activeView === 'table' ? (
+          <>
         {/* Filters & Stats */}
         <div className="flex flex-col lg:flex-row gap-6 mb-8 items-center justify-between animate-fade-in">
           <div className="flex flex-wrap gap-3 items-center w-full lg:w-auto">
@@ -238,6 +262,15 @@ function App() {
                   </td>
                   <td className="px-6 py-5 text-right">
                     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
+                      {v.status !== 'Vendido' && (
+                        <button 
+                          onClick={() => { setSelectedVehicle(v); setIsSaleFormOpen(true); }}
+                          className="btn-action !text-emerald-500 hover:!bg-emerald-50"
+                          title="Marcar como Vendido"
+                        >
+                          <CheckCircle size={18} />
+                        </button>
+                      )}
                       <button 
                         onClick={() => { setEditingVehicle(v); setIsFormOpen(true); }}
                         className="btn-action !text-slate-400 hover:!text-slate-900 hover:!bg-slate-100"
@@ -259,6 +292,10 @@ function App() {
             </tbody>
           </table>
         </div>
+          </>
+        ) : (
+          <StatisticsView vehicles={vehicles} />
+        )}
       </main>
 
       {/* Modals */}
@@ -282,6 +319,14 @@ function App() {
         <ExcelImport 
           onClose={() => setIsImportOpen(false)} 
           onImported={() => { setIsImportOpen(false); fetchVehicles(); }}
+        />
+      )}
+
+      {isSaleFormOpen && (
+        <SaleForm 
+          vehicle={selectedVehicle}
+          onClose={() => setIsSaleFormOpen(false)}
+          onSave={() => { setIsSaleFormOpen(false); fetchVehicles(); }}
         />
       )}
     </div>

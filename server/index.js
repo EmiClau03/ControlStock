@@ -149,7 +149,7 @@ app.post('/api/import-excel', upload.single('file'), async (req, res) => {
             let year = row.año ?? row.Año;
             let color = String(row.color ?? row.Color ?? '').trim();
             let license_plate = String(row.patente ?? row.Patente ?? '').trim();
-            let mileage = row.km ?? row.KM ?? row.Kilometraje;
+            let mileage = row.km ?? row.KM ?? row.Kilometraje ?? row.kilometraje ?? row.kilometros ?? row.Kilometros ?? row['Kilómetros'] ?? row.kms ?? row.Kms ?? row.KMS;
             let price = row['precio (ARS)'] ?? row['Precio (ARS)'] ?? row.Precio;
             let fuel = String(row.combustible ?? row.Combustible ?? '').trim();
             let status = String(row['Estado Comercial'] ?? row['estado comercial'] ?? row.Estado ?? '').trim() || 'Disponible';
@@ -195,14 +195,38 @@ app.post('/api/import-excel', upload.single('file'), async (req, res) => {
     }
 });
 
-// Stat: Vehicles without photos
-app.get('/api/stats/no-photos', async (req, res) => {
+// Sales Endpoints
+app.post('/api/sales', async (req, res) => {
+    const { vehicle_id, final_price, buyer_name, buyer_province, buyer_locality, sale_date, payment_method, notes } = req.body;
     try {
-        const vehicles = await db.all(`
-            SELECT * FROM vehicles v
-            WHERE NOT EXISTS (SELECT 1 FROM photos p WHERE p.vehicle_id = v.id)
+        await db.run('BEGIN TRANSACTION');
+        
+        // Record the sale
+        await db.run(`
+            INSERT INTO sales (vehicle_id, final_price, buyer_name, buyer_province, buyer_locality, sale_date, payment_method, notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `, [vehicle_id, final_price, buyer_name, buyer_province, buyer_locality, sale_date, payment_method, notes]);
+
+        // Update vehicle status
+        await db.run('UPDATE vehicles SET status = ? WHERE id = ?', ['Vendido', vehicle_id]);
+
+        await db.run('COMMIT');
+        res.json({ message: 'Venta registrada con éxito' });
+    } catch (error) {
+        await db.run('ROLLBACK');
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/sales/stats', async (req, res) => {
+    try {
+        const sales = await db.all(`
+            SELECT s.*, v.brand, v.model, v.year 
+            FROM sales s
+            JOIN vehicles v ON s.vehicle_id = v.id
+            ORDER BY s.sale_date DESC
         `);
-        res.json(vehicles);
+        res.json(sales);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
