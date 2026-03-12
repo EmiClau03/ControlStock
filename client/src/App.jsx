@@ -64,7 +64,7 @@ function App() {
     const matchesSearch = 
       v.brand.toLowerCase().includes(searchTerm.toLowerCase()) || 
       v.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      v.version?.toLowerCase().includes(searchTerm.toLowerCase());
+      (v.license_plate?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'All' || v.status === statusFilter;
     const matchesPhotoFilter = !showNoPhotosOnly || v.photoCount === 0;
@@ -161,10 +161,14 @@ function App() {
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold text-sm uppercase tracking-wider">
                 <th className="px-6 py-4">ID</th>
-                <th className="px-6 py-4">Vehículo</th>
+                <th className="px-6 py-4">Marca</th>
+                <th className="px-6 py-4">Modelo</th>
+                <th className="px-6 py-4">Patente</th>
                 <th className="px-6 py-4">Año</th>
+                <th className="px-6 py-4">Color</th>
                 <th className="px-6 py-4">KM</th>
                 <th className="px-6 py-4">Precio</th>
+                <th className="px-6 py-4">Combustible</th>
                 <th className="px-6 py-4">Estado</th>
                 <th className="px-6 py-4">Fotos</th>
                 <th className="px-6 py-4 text-right">Acciones</th>
@@ -173,22 +177,23 @@ function App() {
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan="8" className="px-6 py-12 text-center text-slate-400">Cargando vehículos...</td>
+                  <td colSpan="12" className="px-6 py-12 text-center text-slate-400">Cargando vehículos...</td>
                 </tr>
               ) : filteredVehicles.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="px-6 py-12 text-center text-slate-400">No se encontraron vehículos</td>
+                  <td colSpan="12" className="px-6 py-12 text-center text-slate-400">No se encontraron vehículos</td>
                 </tr>
               ) : filteredVehicles.map(v => (
                 <tr key={v.id} className="hover:bg-slate-50/50 transition-colors group">
                   <td className="px-6 py-4 font-mono text-xs text-slate-400">#{v.id}</td>
-                  <td className="px-6 py-4">
-                    <div className="font-bold text-slate-900">{v.brand} {v.model}</div>
-                    <div className="text-xs text-slate-500">{v.version || '-'}</div>
-                  </td>
+                  <td className="px-6 py-4 font-bold text-slate-900">{v.brand}</td>
+                  <td className="px-6 py-4 text-slate-700">{v.model}</td>
+                  <td className="px-6 py-4 text-slate-600 font-medium">{v.license_plate || '-'}</td>
                   <td className="px-6 py-4 text-slate-600">{v.year}</td>
+                  <td className="px-6 py-4 text-slate-600">{v.color || '-'}</td>
                   <td className="px-6 py-4 text-slate-600">{v.mileage?.toLocaleString()} km</td>
                   <td className="px-6 py-4 font-bold text-blue-600">${v.price?.toLocaleString()}</td>
+                  <td className="px-6 py-4 text-slate-500 text-xs">{v.fuel}</td>
                   <td className="px-6 py-4">{getStatusBadge(v.status)}</td>
                   <td className="px-6 py-4">
                     <div 

@@ -56,12 +56,12 @@ app.get('/api/vehicles/:id', async (req, res) => {
 });
 
 app.post('/api/vehicles', async (req, res) => {
-    const { brand, model, year, version, mileage, fuel, transmission, color, price, description, status } = req.body;
+    const { brand, model, year, version, mileage, fuel, transmission, color, license_plate, price, description, status } = req.body;
     try {
         const result = await db.run(`
-            INSERT INTO vehicles (brand, model, year, version, mileage, fuel, transmission, color, price, description, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `, [brand, model, year, version, mileage, fuel, transmission, color, price, description, status || 'Disponible']);
+            INSERT INTO vehicles (brand, model, year, version, mileage, fuel, transmission, color, license_plate, price, description, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [brand, model, year, version, mileage, fuel, transmission, color, license_plate, price, description, status || 'Disponible']);
         
         res.status(201).json({ id: result.lastID });
     } catch (error) {
@@ -70,13 +70,13 @@ app.post('/api/vehicles', async (req, res) => {
 });
 
 app.put('/api/vehicles/:id', async (req, res) => {
-    const { brand, model, year, version, mileage, fuel, transmission, color, price, description, status } = req.body;
+    const { brand, model, year, version, mileage, fuel, transmission, color, license_plate, price, description, status } = req.body;
     try {
         await db.run(`
             UPDATE vehicles 
-            SET brand=?, model=?, year=?, version=?, mileage=?, fuel=?, transmission=?, color=?, price=?, description=?, status=?
+            SET brand=?, model=?, year=?, version=?, mileage=?, fuel=?, transmission=?, color=?, license_plate=?, price=?, description=?, status=?
             WHERE id=?
-        `, [brand, model, year, version, mileage, fuel, transmission, color, price, description, status, req.params.id]);
+        `, [brand, model, year, version, mileage, fuel, transmission, color, license_plate, price, description, status, req.params.id]);
         
         res.json({ message: 'Vehicle updated' });
     } catch (error) {
@@ -142,24 +142,22 @@ app.post('/api/import-excel', upload.single('file'), async (req, res) => {
         await db.run('DELETE FROM vehicles');
 
         for (const row of data) {
-            // Usar EXACTAMENTE los encabezados que definimos en el prompt:
-            // Marca | Modelo | Año | Versión | Kilometraje | Combustible | Transmisión | Color | Precio | Estado
+            // Marca | Modelo | Año | Color | Patente | KM | Precio (ARS) | Combustible | Estado Comercial
 
-            let brand = String(row.Marca ?? '').trim();
-            let model = String(row.Modelo ?? '').trim();
-            let year = row.Año;
-            let version = String(row['Versión'] ?? '').trim();
-            let mileage = row.Kilometraje;
-            let fuel = String(row.Combustible ?? '').trim();
-            let transmission = String(row['Transmisión'] ?? '').trim();
-            let color = String(row.Color ?? '').trim();
-            let price = row.Precio;
-            let status = String(row.Estado ?? '').trim() || 'Disponible';
+            let brand = String(row.marca ?? row.Marca ?? '').trim();
+            let model = String(row.modelo ?? row.Modelo ?? '').trim();
+            let year = row.año ?? row.Año;
+            let color = String(row.color ?? row.Color ?? '').trim();
+            let license_plate = String(row.patente ?? row.Patente ?? '').trim();
+            let mileage = row.km ?? row.KM ?? row.Kilometraje;
+            let price = row['precio (ARS)'] ?? row['Precio (ARS)'] ?? row.Precio;
+            let fuel = String(row.combustible ?? row.Combustible ?? '').trim();
+            let status = String(row['Estado Comercial'] ?? row['estado comercial'] ?? row.Estado ?? '').trim() || 'Disponible';
 
             if (!brand) brand = 'Sin nombre';
             if (!model) model = 'Sin modelo';
 
-            // Normalizar numéricos si vienen como string
+            // Normalizar numéricos
             const toNumber = (v) => {
                 if (v === null || v === undefined || v === '') return null;
                 if (typeof v === 'number') return v;
@@ -173,18 +171,17 @@ app.post('/api/import-excel', upload.single('file'), async (req, res) => {
             price = toNumber(price);
 
             await db.run(`
-                INSERT INTO vehicles (brand, model, year, version, mileage, fuel, transmission, color, price, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO vehicles (brand, model, year, color, license_plate, mileage, price, fuel, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             `, [
                 brand,
                 model,
                 year,
-                version,
-                mileage,
-                fuel,
-                transmission,
                 color,
+                license_plate,
+                mileage,
                 price,
+                fuel,
                 status
             ]);
         }

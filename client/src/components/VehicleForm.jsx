@@ -12,6 +12,7 @@ const VehicleForm = ({ vehicle, onClose, onSave }) => {
     fuel: 'Nafta',
     transmission: 'Manual',
     color: '',
+    license_plate: '',
     price: '',
     description: '',
     status: 'Disponible'
@@ -96,7 +97,15 @@ const VehicleForm = ({ vehicle, onClose, onSave }) => {
           </div>
           
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Precio (USD)</label>
+            <label className="text-sm font-semibold text-slate-700">Patente</label>
+            <input 
+              name="license_plate" value={formData.license_plate} onChange={handleChange}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 font-mono" 
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700">Precio (ARS)</label>
             <input 
               type="number" name="price" value={formData.price} onChange={handleChange}
               className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 font-bold text-blue-600" 

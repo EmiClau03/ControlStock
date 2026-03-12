@@ -58,7 +58,9 @@ const ExcelImport = ({ onClose, onImported }) => {
               <h3 className="text-lg font-bold text-slate-900">Selecciona tu archivo .xlsx</h3>
               <p className="text-slate-500 mt-2 mb-8 text-sm">
                 Asegúrate de que las columnas coincidan: <br/>
-                <span className="font-mono text-xs bg-slate-100 px-1 rounded">Marca, Modelo, Año, Precio, etc.</span>
+                <span className="font-mono text-xs bg-slate-100 px-1 rounded">
+                  marca | modelo | año | color | patente | km | precio (ARS) | combustible | Estado Comercial
+                </span>
               </p>
 
               <label className="w-full p-4 border-2 border-dashed border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all cursor-pointer mb-6 group">

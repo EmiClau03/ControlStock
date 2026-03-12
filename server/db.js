@@ -19,6 +19,7 @@ async function initDb() {
             fuel TEXT,
             transmission TEXT,
             color TEXT,
+            license_plate TEXT,
             price REAL,
             description TEXT,
             status TEXT DEFAULT 'Disponible',
