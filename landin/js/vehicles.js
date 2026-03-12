@@ -137,24 +137,31 @@ function renderVehicles() {
   container.innerHTML = toShow.map((vehicle, index) => {
     const imgSrc = vehicle.imagen || getPlaceholderSVG(vehicle.marca, vehicle.modelo);
     const hasPhotos = vehicle.tienefotos;
-    
-    // Badge de fotos para los que tienen
-    const photoBadge = hasPhotos && vehicle.photoCount > 1
-      ? `<span class="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm text-brand-900 text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
-           <i class="fa-solid fa-images text-brand-500"></i> ${vehicle.photoCount} fotos
-         </span>`
-      : '';
+    const hasMultiple = vehicle.fotos.length > 1;
     
     // Card con efecto especial para los que tienen fotos
     const cardClass = hasPhotos 
       ? 'vehicle-card vehicle-featured bg-white rounded-2xl overflow-hidden shadow-lg ring-1 ring-brand-500/20'
       : 'vehicle-card bg-white rounded-2xl overflow-hidden shadow-md opacity-90';
 
+    // Flechas de navegación para tarjetas con múltiples fotos
+    const arrowsHTML = hasMultiple ? `
+      <button class="card-arrow left" onclick="event.stopPropagation(); cardPrevPhoto(${vehicle.id})">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      <button class="card-arrow right" onclick="event.stopPropagation(); cardNextPhoto(${vehicle.id})">
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+      <div class="card-dots">
+        ${vehicle.fotos.map((_, i) => `<button class="card-dot ${i === 0 ? 'active' : ''}" data-card-id="${vehicle.id}" data-dot-idx="${i}"></button>`).join('')}
+      </div>
+    ` : '';
+
     return `
     <div class="${cardClass} animate-on-scroll delay-${(index % 4) + 1}"
          data-vehicle-id="${vehicle.id}">
-      <div class="vehicle-image relative overflow-hidden aspect-vehicle">
-        <img src="${imgSrc}"
+      <div class="vehicle-image card-carousel relative overflow-hidden aspect-vehicle" data-carousel-id="${vehicle.id}" data-current-idx="0">
+        <img id="card-img-${vehicle.id}" src="${imgSrc}"
              alt="${vehicle.marca} ${vehicle.modelo} ${vehicle.año}"
              class="w-full h-full object-cover"
              loading="lazy"
@@ -170,9 +177,9 @@ function renderVehicles() {
             ${vehicle.combustible}
           </span>
         </div>` : ''}
-        ${photoBadge}
+        ${arrowsHTML}
       </div>
-      <div class="p-5">
+      <div class="p-5 cursor-pointer" onclick="openVehicleModal(${vehicle.id})">
         <h3 class="font-heading font-bold text-lg text-brand-900 mb-1">
           ${vehicle.marca} ${vehicle.modelo}
         </h3>
@@ -189,10 +196,9 @@ function renderVehicles() {
           <span class="text-xl font-heading font-bold text-brand-500">
             ${vehicle.precio}
           </span>
-          <button onclick="openVehicleModal(${vehicle.id})"
-                  class="vehicle-cta px-4 py-2 bg-slate-100 text-brand-900 rounded-xl text-sm font-semibold hover:bg-brand-500 hover:text-white transition-all duration-300">
+          <span class="vehicle-cta px-4 py-2 bg-slate-100 text-brand-900 rounded-xl text-sm font-semibold hover:bg-brand-500 hover:text-white transition-all duration-300">
             Ver más
-          </button>
+          </span>
         </div>
       </div>
     </div>
@@ -222,6 +228,42 @@ function renderError() {
   `;
 }
 
+// ── Card Carousel Navigation ──
+function cardChangePhoto(vehicleId, direction) {
+  const vehicle = VEHICLES.find(v => v.id === vehicleId);
+  if (!vehicle || vehicle.fotos.length <= 1) return;
+
+  const carousel = document.querySelector(`[data-carousel-id="${vehicleId}"]`);
+  if (!carousel) return;
+
+  let currentIdx = parseInt(carousel.dataset.currentIdx || '0');
+  currentIdx += direction;
+
+  if (currentIdx < 0) currentIdx = vehicle.fotos.length - 1;
+  if (currentIdx >= vehicle.fotos.length) currentIdx = 0;
+
+  carousel.dataset.currentIdx = currentIdx;
+
+  // Update image with smooth transition
+  const img = document.getElementById(`card-img-${vehicleId}`);
+  if (img) {
+    img.style.opacity = '0';
+    setTimeout(() => {
+      img.src = vehicle.fotos[currentIdx];
+      img.style.opacity = '1';
+    }, 120);
+    img.style.transition = 'opacity 0.15s ease';
+  }
+
+  // Update dots
+  carousel.querySelectorAll('.card-dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i === currentIdx);
+  });
+}
+
+function cardPrevPhoto(vehicleId) { cardChangePhoto(vehicleId, -1); }
+function cardNextPhoto(vehicleId) { cardChangePhoto(vehicleId, 1); }
+
 // ── Vehicle Detail Modal ──
 function openVehicleModal(vehicleId) {
   const vehicle = VEHICLES.find(v => v.id === vehicleId);
@@ -235,15 +277,20 @@ function openVehicleModal(vehicleId) {
   const mainImg = vehicle.imagen || getPlaceholderSVG(vehicle.marca, vehicle.modelo);
   const hasMultiplePhotos = vehicle.fotos.length > 1;
 
-  // Galería de fotos
-  const galleryHTML = hasMultiplePhotos ? `
-    <div class="flex gap-2 mt-3 px-6 overflow-x-auto pb-2">
-      ${vehicle.fotos.map((foto, i) => `
-        <button onclick="changeModalPhoto('${foto}', this)" 
-                class="modal-thumb flex-shrink-0 w-20 h-16 rounded-xl overflow-hidden border-2 transition-all duration-200 ${i === 0 ? 'border-brand-500 ring-2 ring-brand-500/30' : 'border-transparent opacity-70 hover:opacity-100'}">
-          <img src="${foto}" alt="Foto ${i + 1}" class="w-full h-full object-cover">
-        </button>
-      `).join('')}
+  // Store current modal vehicle for arrow navigation
+  window._modalVehicleId = vehicleId;
+  window._modalPhotoIdx = 0;
+
+  // Flechas de navegación en el modal
+  const modalArrowsHTML = hasMultiplePhotos ? `
+    <button class="modal-arrow left" onclick="modalPrevPhoto()">
+      <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <button class="modal-arrow right" onclick="modalNextPhoto()">
+      <i class="fa-solid fa-chevron-right"></i>
+    </button>
+    <div class="modal-photo-counter">
+      <span id="modal-photo-current">1</span> / ${vehicle.fotos.length}
     </div>
   ` : '';
 
@@ -251,15 +298,14 @@ function openVehicleModal(vehicleId) {
     <div class="relative">
       <img id="modal-main-photo" src="${mainImg}"
            alt="${vehicle.marca} ${vehicle.modelo}"
-           class="w-full h-64 sm:h-80 md:h-96 object-cover transition-all duration-300"
+           class="w-full object-contain bg-brand-950" style="max-height: 480px; min-height: 280px;"
            onerror="this.src='${getPlaceholderSVG(vehicle.marca, vehicle.modelo)}'">
-      <div class="absolute inset-0 bg-gradient-to-t from-brand-900/60 to-transparent"></div>
-      <div class="absolute bottom-4 left-6 right-6 flex items-center justify-between">
+      <div class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-brand-900/50 to-transparent pointer-events-none"></div>
+      <div class="absolute bottom-4 left-6">
         <span class="bg-brand-500/90 text-white text-xs font-semibold px-3 py-1 rounded-full capitalize">${vehicle.combustible || 'Vehículo'}</span>
-        ${vehicle.fotos.length > 0 ? `<span class="bg-white/90 text-brand-900 text-xs font-semibold px-2.5 py-1 rounded-full"><i class="fa-solid fa-images mr-1"></i>${vehicle.fotos.length} fotos</span>` : ''}
       </div>
+      ${modalArrowsHTML}
     </div>
-    ${galleryHTML}
     <div class="p-6 md:p-8">
       <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6">
         <div>
@@ -322,32 +368,39 @@ function openVehicleModal(vehicleId) {
   document.body.style.overflow = 'hidden';
 }
 
-// ── Change modal photo ──
-function changeModalPhoto(photoUrl, thumbEl) {
+// ── Modal Photo Navigation ──
+function modalChangePhoto(direction) {
+  const vehicle = VEHICLES.find(v => v.id === window._modalVehicleId);
+  if (!vehicle || vehicle.fotos.length <= 1) return;
+
+  window._modalPhotoIdx += direction;
+  if (window._modalPhotoIdx < 0) window._modalPhotoIdx = vehicle.fotos.length - 1;
+  if (window._modalPhotoIdx >= vehicle.fotos.length) window._modalPhotoIdx = 0;
+
   const mainPhoto = document.getElementById('modal-main-photo');
   if (mainPhoto) {
     mainPhoto.style.opacity = '0';
     setTimeout(() => {
-      mainPhoto.src = photoUrl;
+      mainPhoto.src = vehicle.fotos[window._modalPhotoIdx];
       mainPhoto.style.opacity = '1';
     }, 150);
+    mainPhoto.style.transition = 'opacity 0.15s ease';
   }
-  // Update thumb styles
-  document.querySelectorAll('.modal-thumb').forEach(t => {
-    t.classList.remove('border-brand-500', 'ring-2', 'ring-brand-500/30');
-    t.classList.add('border-transparent', 'opacity-70');
-  });
-  if (thumbEl) {
-    thumbEl.classList.remove('border-transparent', 'opacity-70');
-    thumbEl.classList.add('border-brand-500', 'ring-2', 'ring-brand-500/30');
-  }
+
+  // Update counter
+  const counter = document.getElementById('modal-photo-current');
+  if (counter) counter.textContent = window._modalPhotoIdx + 1;
 }
+
+function modalPrevPhoto() { modalChangePhoto(-1); }
+function modalNextPhoto() { modalChangePhoto(1); }
 
 function closeVehicleModal() {
   const modal = document.getElementById('vehicle-modal');
   if (modal) {
     modal.classList.remove('active');
     document.body.style.overflow = '';
+    window._modalVehicleId = null;
   }
 }
 
@@ -442,8 +495,10 @@ function initCatalog() {
     });
   }
 
-  // Close modal on Escape
+  // Close modal on Escape + Arrow keys for photo navigation
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeVehicleModal();
+    if (e.key === 'ArrowLeft' && window._modalVehicleId) modalPrevPhoto();
+    if (e.key === 'ArrowRight' && window._modalVehicleId) modalNextPhoto();
   });
 }
