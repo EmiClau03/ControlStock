@@ -285,11 +285,12 @@ app.get('/api/public/catalog', async (req, res) => {
     try {
         // Solo vehículos disponibles, priorizando los que tienen fotos
         const vehicles = await db.all(`
-            SELECT v.id, v.brand, v.model, v.year, v.color, v.mileage, v.price, v.fuel, v.license_plate,
+            SELECT v.id, v.brand, v.model, v.year, v.color, v.mileage, v.price, v.fuel, v.license_plate, v.status,
                    (SELECT COUNT(*) FROM photos p WHERE p.vehicle_id = v.id) as photoCount
             FROM vehicles v
             WHERE v.status IN ('Disponible', 'Muy Visto')
             ORDER BY 
+                CASE WHEN v.status = 'Muy Visto' THEN 0 ELSE 1 END ASC,
                 (SELECT COUNT(*) FROM photos p WHERE p.vehicle_id = v.id) DESC,
                 v.created_at DESC
         `);

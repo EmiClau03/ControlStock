@@ -47,6 +47,7 @@ async function fetchVehicles() {
         color: v.color || '',
         combustible: v.fuel || '',
         patente: v.license_plate || '',
+        estado: v.status || '',
         tipo: 'todos', // Sin clasificación de tipo por ahora
         imagen: imagenPrincipal,
         fotos: fotos,
@@ -135,6 +136,7 @@ function renderVehicles() {
 
   // Render cards
   container.innerHTML = toShow.map((vehicle, index) => {
+    console.log('Rendering vehicle:', vehicle.id, 'Status:', vehicle.estado);
     const imgSrc = vehicle.imagen || getPlaceholderSVG(vehicle.marca, vehicle.modelo);
     const hasPhotos = vehicle.tienefotos;
     const hasMultiple = vehicle.fotos.length > 1;
