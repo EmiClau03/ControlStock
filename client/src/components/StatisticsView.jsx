@@ -6,15 +6,17 @@ import {
 import { 
   TrendingUp, Activity, Package, DollarSign, 
   PieChart as PieIcon, BarChart3, Clock, ShoppingCart, LayoutDashboard,
-  MapPin, ChevronLeft
+  MapPin, ChevronLeft, Map as MapIcon, BarChart2
 } from 'lucide-react';
 import { getSalesStats } from '../api';
+import ArgentinaMap from './ArgentinaMap';
 
 const StatisticsView = ({ vehicles }) => {
   const [activeTab, setActiveTab] = useState('inventory'); // 'inventory' or 'sales'
   const [salesData, setSalesData] = useState([]);
   const [loadingSales, setLoadingSales] = useState(true);
   const [selectedProvince, setSelectedProvince] = useState(null);
+  const [salesViewType, setSalesViewType] = useState('chart'); // 'chart' or 'map'
 
   useEffect(() => {
     fetchSales();
@@ -259,39 +261,79 @@ const StatisticsView = ({ vehicles }) => {
                   </div>
                   <div>
                     <h3 className="font-black text-slate-900 uppercase tracking-tight">
-                      {selectedProvince ? `Ventas en ${selectedProvince}` : "Ventas por Región"}
+                      {selectedProvince ? `Ventas en ${selectedProvince}` : (salesViewType === 'map' ? "Mapa de Ventas" : "Ventas por Región")}
                     </h3>
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                      {selectedProvince ? "Distribución por Localidad" : "Click en una provincia para ver ciudades"}
+                      {selectedProvince ? "Distribución por Localidad" : (salesViewType === 'map' ? "Visión geográfica nacional" : "Click en una provincia para ver ciudades")}
                     </p>
                   </div>
                 </div>
-                {selectedProvince && (
-                  <button 
-                    onClick={() => setSelectedProvince(null)}
-                    className="flex items-center gap-1 text-[10px] font-black text-blue-600 uppercase tracking-tighter hover:bg-blue-50 px-2 py-1 rounded-lg transition-all"
-                  >
-                    <ChevronLeft size={14} /> Volver
-                  </button>
-                )}
+                
+                <div className="flex items-center gap-2">
+                  {!selectedProvince && (
+                    <div className="flex bg-slate-100 p-1 rounded-lg mr-2">
+                      <button 
+                        onClick={() => setSalesViewType('chart')}
+                        className={`p-1.5 rounded-md transition-all ${salesViewType === 'chart' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-400'}`}
+                      >
+                        <BarChart2 size={16} />
+                      </button>
+                      <button 
+                        onClick={() => setSalesViewType('map')}
+                        className={`p-1.5 rounded-md transition-all ${salesViewType === 'map' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-400'}`}
+                      >
+                        <MapIcon size={16} />
+                      </button>
+                    </div>
+                  )}
+                  {selectedProvince && (
+                    <button 
+                      onClick={() => setSelectedProvince(null)}
+                      className="flex items-center gap-1 text-[10px] font-black text-blue-600 uppercase tracking-tighter hover:bg-blue-50 px-2 py-1 rounded-lg transition-all"
+                    >
+                      <ChevronLeft size={14} /> Volver
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="h-[350px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart 
-                    data={selectedProvince ? stats.localityData : stats.provinceData} 
-                    onClick={handleBarClick}
-                    className={!selectedProvince ? "cursor-pointer" : ""}
-                  >
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} className="text-[10px] font-bold text-slate-400" />
-                    <YAxis hide />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="count" fill={selectedProvince ? "#f59e0b" : "#ef4444"} radius={[10, 10, 0, 0]} barSize={40}>
-                       {!selectedProvince && stats.provinceData.map((entry, index) => (
-                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                       ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                {selectedProvince ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={stats.localityData}>
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} className="text-[10px] font-bold text-slate-400" />
+                      <YAxis hide />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Bar dataKey="count" fill="#f59e0b" radius={[10, 10, 0, 0]} barSize={40} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  salesViewType === 'map' ? (
+                    <ArgentinaMap 
+                      data={stats.provinceData} 
+                      onProvinceClick={(name) => {
+                        const hasSales = stats.provinceData.some(p => p.name === name);
+                        if (hasSales) setSelectedProvince(name);
+                      }} 
+                    />
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart 
+                        data={stats.provinceData} 
+                        onClick={handleBarClick}
+                        className="cursor-pointer"
+                      >
+                        <XAxis dataKey="name" axisLine={false} tickLine={false} className="text-[10px] font-bold text-slate-400" />
+                        <YAxis hide />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Bar dataKey="count" fill="#ef4444" radius={[10, 10, 0, 0]} barSize={40}>
+                           {stats.provinceData.map((entry, index) => (
+                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                           ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )
+                )}
               </div>
             </div>
 
