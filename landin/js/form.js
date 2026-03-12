@@ -151,8 +151,17 @@ function handleFormSubmit(e) {
   submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Enviando...';
   submitBtn.disabled = true;
 
-  // Simulate submission (replace with webhook/API call later)
-  setTimeout(() => {
+  // Submit to API
+  fetch('/api/public/leads', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(formData)
+  })
+  .then(res => {
+    if (!res.ok) throw new Error('Error en el servidor');
+    return res.json();
+  })
+  .then(data => {
     submitBtn.innerHTML = originalText;
     submitBtn.disabled = false;
 
@@ -162,23 +171,13 @@ function handleFormSubmit(e) {
     // Reset form
     e.target.reset();
     clearVehicleField();
-
-    // Log data for future integration
-    console.log('📩 Lead data ready for webhook:', formData);
-
-    /* ── FUTURE INTEGRATION ──
-     * Replace the setTimeout above with:
-     *
-     * fetch('YOUR_WEBHOOK_URL', {
-     *   method: 'POST',
-     *   headers: { 'Content-Type': 'application/json' },
-     *   body: JSON.stringify(formData)
-     * })
-     * .then(res => res.json())
-     * .then(data => showToast('¡Consulta enviada!', 'success'))
-     * .catch(err => showToast('Error al enviar. Intente nuevamente.', 'error'));
-     */
-  }, 1500);
+  })
+  .catch(err => {
+    console.error('Error al enviar consulta:', err);
+    submitBtn.innerHTML = originalText;
+    submitBtn.disabled = false;
+    showToast('Error al enviar la consulta. Intente nuevamente por WhatsApp.', 'error');
+  });
 }
 
 // ── Toast Notification ──

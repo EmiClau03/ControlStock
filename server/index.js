@@ -317,6 +317,50 @@ app.get('/api/public/catalog', async (req, res) => {
     }
 });
 
+// ═══════════════════════════════════════════
+//  LEADS API
+// ═══════════════════════════════════════════
+
+// Crear una consulta (Público)
+app.post('/api/public/leads', async (req, res) => {
+    console.log('📩 Recibida nueva consulta en /api/public/leads:', req.body);
+    try {
+        const { nombre, apellido, telefono, mensaje, vehiculo } = req.body;
+        if (!nombre || !apellido || !telefono) {
+            return res.status(400).json({ error: 'Nombre, apellido y teléfono son obligatorios' });
+        }
+        await db.run(
+            'INSERT INTO leads (nombre, apellido, telefono, mensaje, vehiculo) VALUES (?, ?, ?, ?, ?)',
+            [nombre, apellido, telefono, mensaje, vehiculo]
+        );
+        res.json({ message: 'Consulta enviada con éxito' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Listar todas las consultas (Privado)
+app.get('/api/leads', async (req, res) => {
+    try {
+        const leads = await db.all('SELECT * FROM leads ORDER BY created_at DESC');
+        res.json(leads);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Actualizar estado de una consulta (Privado)
+app.put('/api/leads/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { estado } = req.body;
+        await db.run('UPDATE leads SET estado = ? WHERE id = ?', [estado, id]);
+        res.json({ message: 'Estado actualizado' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 initDb().then(database => {
     db = database;
     app.listen(PORT, () => {
