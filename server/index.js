@@ -137,60 +137,103 @@ app.post('/api/import-excel', upload.single('file'), async (req, res) => {
         const sheetName = workbook.SheetNames[0];
         const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
 
-        // Vaciar tablas antes de importar (borrar todos los registros existentes)
-        await db.run('DELETE FROM photos');
-        await db.run('DELETE FROM vehicles');
+        // Vaciar tablas antes de importar con manejo de errores individual
+        try { await db.run('DELETE FROM sales'); } catch (e) { console.log('Aviso: No se pudo vaciar ventas'); }
+        try { await db.run('DELETE FROM photos'); } catch (e) { console.log('Aviso: No se pudo vaciar fotos'); }
+        try { await db.run('DELETE FROM vehicles'); } catch (e) { console.log('Aviso: No se pudo vaciar vehiculos'); }
 
-        for (const row of data) {
-            // Marca | Modelo | Año | Color | Patente | KM | Precio (ARS) | Combustible | Estado Comercial
-
-            let brand = String(row.marca ?? row.Marca ?? '').trim();
-            let model = String(row.modelo ?? row.Modelo ?? '').trim();
-            let year = row.año ?? row.Año;
-            let color = String(row.color ?? row.Color ?? '').trim();
-            let license_plate = String(row.patente ?? row.Patente ?? '').trim();
-            let mileage = row.km ?? row.KM ?? row.Kilometraje ?? row.kilometraje ?? row.kilometros ?? row.Kilometros ?? row['Kilómetros'] ?? row.kms ?? row.Kms ?? row.KMS;
-            let price = row['precio (ARS)'] ?? row['Precio (ARS)'] ?? row.Precio;
-            let fuel = String(row.combustible ?? row.Combustible ?? '').trim();
-            let status = String(row['Estado Comercial'] ?? row['estado comercial'] ?? row.Estado ?? '').trim() || 'Disponible';
-
-            if (!brand) brand = 'Sin nombre';
-            if (!model) model = 'Sin modelo';
-
-            // Normalizar numéricos
-            const toNumber = (v) => {
-                if (v === null || v === undefined || v === '') return null;
-                if (typeof v === 'number') return v;
-                const cleaned = String(v).replace(/[^0-9.-]/g, '');
-                const n = Number(cleaned);
-                return Number.isNaN(n) ? null : n;
-            };
-
-            year = toNumber(year);
-            mileage = toNumber(mileage);
-            price = toNumber(price);
-
-            await db.run(`
-                INSERT INTO vehicles (brand, model, year, color, license_plate, mileage, price, fuel, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `, [
-                brand,
-                model,
-                year,
-                color,
-                license_plate,
-                mileage,
-                price,
-                fuel,
-                status
-            ]);
+        if (data.length > 0) {
+            console.log('Fila 1 (Cabeceras detectadas):', Object.keys(data[0]));
         }
 
-        // Clean up uploaded excel file
-        fs.unlinkSync(req.file.path);
+        for (let i = 0; i < data.length; i++) {
+            const row = data[i];
+            if (!row || typeof row !== 'object') continue;
 
-        res.json({ message: `${data.length} vehicles imported successfully` });
+            try {
+                const findValue = (obj, keywords) => {
+                    const keys = Object.keys(obj);
+                    const foundKey = keys.find(k => {
+                        if (typeof k !== 'string') return false;
+                        const nk = k.toLowerCase().replace(/\s+/g, '').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                        return keywords.some(kw => {
+                            const nkw = kw.toLowerCase().replace(/\s+/g, '').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                            return nk.includes(nkw);
+                        });
+                    });
+                    return foundKey ? obj[foundKey] : undefined;
+                };
+
+                // Keywords extendidos
+                let brand = String(findValue(row, ['marca']) || 'Sin nombre').trim();
+                let model = String(findValue(row, ['modelo']) || 'Sin modelo').trim();
+                let year = findValue(row, ['año', 'anio', 'year']); 
+                let color = String(findValue(row, ['color']) || '').trim();
+                let license_plate = String(findValue(row, ['patente', 'dominio']) || '').trim();
+                let mileage = findValue(row, ['km', 'kilometraje', 'kilometros', 'kms', 'recorrido']);
+                let price = findValue(row, ['precio', 'ars', 'valor', 'monto']);
+                let fuel = String(findValue(row, ['combustible', 'nafta', 'diesel', 'gnc']) || '').trim();
+                let status = String(findValue(row, ['estado', 'comercial']) || 'Disponible').trim();
+
+                // Normalización de números avanzada (maneja puntos y comas de Argentina/Internacional)
+                const toNumber = (v) => {
+                    if (v === null || v === undefined || v === '') return null;
+                    if (typeof v === 'number') return v;
+                    
+                    let s = String(v).trim();
+                    if (!s) return null;
+
+                    // Si tiene puntos y comas, el último suele ser el decimal
+                    const lastDot = s.lastIndexOf('.');
+                    const lastComma = s.lastIndexOf(',');
+
+                    if (lastComma > lastDot) {
+                        // Formato: 1.250,50 -> Mil es punto, decimal es coma
+                        s = s.replace(/\./g, '').replace(',', '.');
+                    } else if (lastDot > lastComma) {
+                        // Formato: 1,250.50 -> Mil es coma, decimal es punto
+                        s = s.replace(/,/g, '');
+                    } else {
+                        // Solo tiene comas o solo puntos (o nada)
+                        s = s.replace(/,/g, '.');
+                        const parts = s.split('.');
+                        if (parts.length > 2) {
+                            // Múltiples separadores: 1.250.000 -> Mil
+                            s = parts.join('');
+                        } else if (parts.length === 2) {
+                            // Un solo separador: ¿Decimal o Mil? (1.200 vs 1.20)
+                            // Si tiene 3 caracteres después, asumimos que es miles (ej: 1.250)
+                            // Excepto si el número es muy pequeño, pero para autos los KM/Precios suelen ser miles
+                            if (parts[1].length === 3) {
+                                s = parts[0] + parts[1];
+                            }
+                        }
+                    }
+
+                    const n = parseFloat(s.replace(/[^0-9.-]/g, ''));
+                    return isNaN(n) ? null : Math.round(n);
+                };
+
+                const nYear = toNumber(year);
+                const nMileage = toNumber(mileage);
+                const nPrice = toNumber(price);
+
+                await db.run(`
+                    INSERT INTO vehicles (brand, model, year, color, license_plate, mileage, price, fuel, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `, [brand, model, nYear, color, license_plate, nMileage, nPrice, fuel, status]);
+            } catch (innerError) {
+                console.error(`Error procesando fila ${i + 1}:`, innerError);
+            }
+        }
+
+        if (req.file && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
+
+        res.json({ message: 'Importación finalizada' });
     } catch (error) {
+        console.error('CRITICAL IMPORT ERROR:', error);
         res.status(500).json({ error: error.message });
     }
 });
