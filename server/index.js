@@ -288,7 +288,7 @@ app.get('/api/public/catalog', async (req, res) => {
             SELECT v.id, v.brand, v.model, v.year, v.color, v.mileage, v.price, v.fuel, v.license_plate,
                    (SELECT COUNT(*) FROM photos p WHERE p.vehicle_id = v.id) as photoCount
             FROM vehicles v
-            WHERE v.status = 'Disponible'
+            WHERE v.status IN ('Disponible', 'Muy Visto')
             ORDER BY 
                 (SELECT COUNT(*) FROM photos p WHERE p.vehicle_id = v.id) DESC,
                 v.created_at DESC

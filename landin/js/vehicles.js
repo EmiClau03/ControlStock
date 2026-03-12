@@ -139,10 +139,15 @@ function renderVehicles() {
     const hasPhotos = vehicle.tienefotos;
     const hasMultiple = vehicle.fotos.length > 1;
     
-    // Card con efecto especial para los que tienen fotos
-    const cardClass = hasPhotos 
-      ? 'vehicle-card vehicle-featured bg-white rounded-2xl overflow-hidden shadow-lg ring-1 ring-brand-500/20'
-      : 'vehicle-card bg-white rounded-2xl overflow-hidden shadow-md opacity-90';
+    // Card con efecto especial para los que tienen fotos o son "Muy Visto"
+    let cardClass = '';
+    if (vehicle.estado === 'Muy Visto') {
+      cardClass = 'vehicle-card vehicle-featured vehicle-hot bg-white rounded-2xl overflow-hidden shadow-xl ring-2 ring-orange-500/30 animate-pulse-gentle';
+    } else if (hasPhotos) {
+      cardClass = 'vehicle-card vehicle-featured bg-white rounded-2xl overflow-hidden shadow-lg ring-1 ring-brand-500/20';
+    } else {
+      cardClass = 'vehicle-card bg-white rounded-2xl overflow-hidden shadow-md opacity-90';
+    }
 
     // Flechas de navegación para tarjetas con múltiples fotos
     const arrowsHTML = hasMultiple ? `
@@ -175,6 +180,12 @@ function renderVehicles() {
         <div class="absolute top-3 left-3">
           <span class="bg-brand-500/90 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full capitalize">
             ${vehicle.combustible}
+          </span>
+        </div>` : ''}
+        ${vehicle.estado === 'Muy Visto' ? `
+        <div class="absolute bottom-3 left-3 z-10 animate-bounce-slow">
+          <span class="bg-orange-500 text-white text-[10px] font-black px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 uppercase tracking-wider border border-orange-400">
+            <i class="fa-solid fa-fire"></i> MUY VISTO
           </span>
         </div>` : ''}
         ${arrowsHTML}

@@ -98,6 +98,7 @@ function App() {
   const getStatusBadge = (status) => {
     const styles = {
       'Disponible': 'bg-emerald-100 text-emerald-700 border-emerald-200',
+      'Muy Visto': 'bg-orange-100 text-orange-700 border-orange-200 font-bold animate-pulse-slow',
       'Reservado': 'bg-amber-100 text-amber-700 border-amber-200',
       'Vendido': 'bg-slate-100 text-slate-700 border-slate-200'
     };
@@ -200,6 +201,7 @@ function App() {
             >
               <option value="All">Todos los estados</option>
               <option value="Disponible">🟢 Disponible</option>
+              <option value="Muy Visto">🔥 Muy Visto</option>
               <option value="Reservado">🟡 Reservado</option>
               <option value="Vendido">🔴 Vendido</option>
             </select>
