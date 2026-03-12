@@ -16,6 +16,9 @@ app.use(express.json());
 app.use(morgan('dev'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Servir la Landing Page como sitio público
+app.use(express.static(path.join(__dirname, '..', 'landin')));
+
 // Storage configuration
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -270,6 +273,45 @@ app.get('/api/sales/stats', async (req, res) => {
             ORDER BY s.sale_date DESC
         `);
         res.json(sales);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ═══════════════════════════════════════════
+//  PUBLIC CATALOG API (para la Landing Page)
+// ═══════════════════════════════════════════
+app.get('/api/public/catalog', async (req, res) => {
+    try {
+        // Solo vehículos disponibles, priorizando los que tienen fotos
+        const vehicles = await db.all(`
+            SELECT v.id, v.brand, v.model, v.year, v.color, v.mileage, v.price, v.fuel, v.license_plate,
+                   (SELECT COUNT(*) FROM photos p WHERE p.vehicle_id = v.id) as photoCount
+            FROM vehicles v
+            WHERE v.status = 'Disponible'
+            ORDER BY 
+                (SELECT COUNT(*) FROM photos p WHERE p.vehicle_id = v.id) DESC,
+                v.created_at DESC
+        `);
+
+        // Agregar fotos a cada vehículo
+        const vehiclesWithPhotos = await Promise.all(
+            vehicles.map(async (v) => {
+                const photos = await db.all(
+                    'SELECT id, filename FROM photos WHERE vehicle_id = ? ORDER BY id ASC LIMIT 5',
+                    v.id
+                );
+                return {
+                    ...v,
+                    photos: photos.map(p => ({
+                        id: p.id,
+                        url: `/uploads/${p.filename}`
+                    }))
+                };
+            })
+        );
+
+        res.json(vehiclesWithPhotos);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
