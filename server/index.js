@@ -16,6 +16,9 @@ app.use(express.json());
 app.use(morgan('dev'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Servir la Landing Page como sitio público
+app.use(express.static(path.join(__dirname, '..', 'landin')));
+
 // Storage configuration
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -270,6 +273,89 @@ app.get('/api/sales/stats', async (req, res) => {
             ORDER BY s.sale_date DESC
         `);
         res.json(sales);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ═══════════════════════════════════════════
+//  PUBLIC CATALOG API (para la Landing Page)
+// ═══════════════════════════════════════════
+app.get('/api/public/catalog', async (req, res) => {
+    try {
+        // Solo vehículos disponibles, priorizando los que tienen fotos
+        const vehicles = await db.all(`
+            SELECT v.id, v.brand, v.model, v.year, v.color, v.mileage, v.price, v.fuel, v.license_plate,
+                   (SELECT COUNT(*) FROM photos p WHERE p.vehicle_id = v.id) as photoCount
+            FROM vehicles v
+            WHERE v.status = 'Disponible'
+            ORDER BY 
+                (SELECT COUNT(*) FROM photos p WHERE p.vehicle_id = v.id) DESC,
+                v.created_at DESC
+        `);
+
+        // Agregar fotos a cada vehículo
+        const vehiclesWithPhotos = await Promise.all(
+            vehicles.map(async (v) => {
+                const photos = await db.all(
+                    'SELECT id, filename FROM photos WHERE vehicle_id = ? ORDER BY id ASC LIMIT 5',
+                    v.id
+                );
+                return {
+                    ...v,
+                    photos: photos.map(p => ({
+                        id: p.id,
+                        url: `/uploads/${p.filename}`
+                    }))
+                };
+            })
+        );
+
+        res.json(vehiclesWithPhotos);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ═══════════════════════════════════════════
+//  LEADS API
+// ═══════════════════════════════════════════
+
+// Crear una consulta (Público)
+app.post('/api/public/leads', async (req, res) => {
+    console.log('📩 Recibida nueva consulta en /api/public/leads:', req.body);
+    try {
+        const { nombre, apellido, telefono, mensaje, vehiculo } = req.body;
+        if (!nombre || !apellido || !telefono) {
+            return res.status(400).json({ error: 'Nombre, apellido y teléfono son obligatorios' });
+        }
+        await db.run(
+            'INSERT INTO leads (nombre, apellido, telefono, mensaje, vehiculo) VALUES (?, ?, ?, ?, ?)',
+            [nombre, apellido, telefono, mensaje, vehiculo]
+        );
+        res.json({ message: 'Consulta enviada con éxito' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Listar todas las consultas (Privado)
+app.get('/api/leads', async (req, res) => {
+    try {
+        const leads = await db.all('SELECT * FROM leads ORDER BY created_at DESC');
+        res.json(leads);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Actualizar estado de una consulta (Privado)
+app.put('/api/leads/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { estado } = req.body;
+        await db.run('UPDATE leads SET estado = ? WHERE id = ?', [estado, id]);
+        res.json({ message: 'Estado actualizado' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

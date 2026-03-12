@@ -19,6 +19,8 @@ import PhotoManager from './components/PhotoManager';
 import ExcelImport from './components/ExcelImport';
 import StatisticsView from './components/StatisticsView';
 import SaleForm from './components/SaleForm';
+import LeadsView from './components/LeadsView';
+import api from './api';
 
 function App() {
   const [vehicles, setVehicles] = useState([]);
@@ -35,11 +37,17 @@ function App() {
   
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isSaleFormOpen, setIsSaleFormOpen] = useState(false);
-  const [activeView, setActiveView] = useState('table'); // 'table' or 'statistics'
+  const [activeView, setActiveView] = useState('table'); // 'table', 'statistics', or 'leads'
+  const [newLeadsCount, setNewLeadsCount] = useState(0);
 
   useEffect(() => {
     fetchVehicles();
+    fetchLeadsCount();
     document.title = "Automotores Marcos | Stock";
+
+    // Refresh leads count every minute
+    const interval = setInterval(fetchLeadsCount, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchVehicles = async () => {
@@ -51,6 +59,16 @@ function App() {
       console.error('Error fetching vehicles:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchLeadsCount = async () => {
+    try {
+      const { data } = await api.get('/leads');
+      const count = data.filter(l => l.estado === 'Nuevo').length;
+      setNewLeadsCount(count);
+    } catch (error) {
+      console.error('Error fetching leads count:', error);
     }
   };
 
@@ -133,6 +151,20 @@ function App() {
                 className={`px-4 py-2 rounded-xl text-xs font-black transition-all tracking-widest uppercase ${activeView === 'table' ? 'bg-blue-600 text-white shadow-xl shadow-blue-900/40' : 'text-slate-500 hover:text-slate-300'}`}
               >
                 Stock
+              </button>
+              <button 
+                onClick={() => {
+                  setActiveView('leads');
+                  setNewLeadsCount(0); // Reset count when viewing
+                }}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all tracking-widest uppercase relative ${activeView === 'leads' ? 'bg-blue-600 text-white shadow-xl shadow-blue-900/40' : 'text-slate-500 hover:text-slate-300'}`}
+              >
+                Consultas
+                {newLeadsCount > 0 && activeView !== 'leads' && (
+                  <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] text-white animate-bounce-slow shadow-lg">
+                    {newLeadsCount}
+                  </span>
+                )}
               </button>
               <button 
                 onClick={() => setActiveView('statistics')}
@@ -293,6 +325,8 @@ function App() {
           </table>
         </div>
           </>
+        ) : activeView === 'leads' ? (
+          <LeadsView />
         ) : (
           <StatisticsView vehicles={vehicles} />
         )}

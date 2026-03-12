@@ -45,6 +45,17 @@ async function initDb() {
             notes TEXT,
             FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE CASCADE
         );
+
+        CREATE TABLE IF NOT EXISTS leads (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            apellido TEXT NOT NULL,
+            telefono TEXT NOT NULL,
+            mensaje TEXT,
+            vehiculo TEXT,
+            estado TEXT DEFAULT 'Nuevo',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
     `);
 
     // Migraciones rápidas para nuevas columnas
