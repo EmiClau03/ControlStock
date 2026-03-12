@@ -55,116 +55,116 @@ const VehicleForm = ({ vehicle, onClose, onSave }) => {
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Marca *</label>
+        <form onSubmit={handleSubmit} className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider ml-1">Marca *</label>
             <input 
               required name="brand" value={formData.brand} onChange={handleChange}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" 
+              className="input-field" 
+              placeholder="Ej: Toyota"
             />
           </div>
           
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Modelo *</label>
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider ml-1">Modelo *</label>
             <input 
               required name="model" value={formData.model} onChange={handleChange}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" 
+              className="input-field" 
+              placeholder="Ej: Corolla"
             />
           </div>
           
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Año</label>
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider ml-1">Año</label>
             <input 
               type="number" name="year" value={formData.year} onChange={handleChange}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" 
+              className="input-field" 
             />
           </div>
           
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Versión</label>
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider ml-1">Color</label>
             <input 
-              name="version" value={formData.version} onChange={handleChange}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" 
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Kilometraje</label>
-            <input 
-              type="number" name="mileage" value={formData.mileage} onChange={handleChange}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" 
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Patente</label>
-            <input 
-              name="license_plate" value={formData.license_plate} onChange={handleChange}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 font-mono" 
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Precio (ARS)</label>
-            <input 
-              type="number" name="price" value={formData.price} onChange={handleChange}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 font-bold text-blue-600" 
+              name="color" value={formData.color} onChange={handleChange}
+              className="input-field" 
+              placeholder="Ej: Gris Plata"
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Combustible</label>
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider ml-1">Patente</label>
+            <input 
+              name="license_plate" value={formData.license_plate} onChange={handleChange}
+              className="input-field font-mono uppercase tracking-widest placeholder:tracking-normal" 
+              placeholder="Ej: AA123BB"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider ml-1">Kilometraje</label>
+            <input 
+              type="number" name="mileage" value={formData.mileage} onChange={handleChange}
+              className="input-field" 
+              placeholder="0"
+            />
+          </div>
+          
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider ml-1">Precio (ARS)</label>
+            <input 
+              type="number" name="price" value={formData.price} onChange={handleChange}
+              className="input-field font-black text-blue-600" 
+              placeholder="0.00"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider ml-1">Combustible</label>
             <select 
               name="fuel" value={formData.fuel} onChange={handleChange}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+              className="input-field cursor-pointer"
             >
               <option value="Nafta">Nafta</option>
               <option value="Diesel">Diesel</option>
               <option value="Híbrido">Híbrido</option>
               <option value="Eléctrico">Eléctrico</option>
+              <option value="GNC">GNC</option>
             </select>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Transmisión</label>
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider ml-1">Estado Comercial</label>
+            <select 
+              name="status" value={formData.status} onChange={handleChange}
+              className="input-field cursor-pointer font-bold"
+            >
+              <option value="Disponible">🟢 Disponible</option>
+              <option value="Reservado">🟡 Reservado</option>
+              <option value="Vendido">🔴 Vendido</option>
+            </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider ml-1">Transmisión</label>
             <select 
               name="transmission" value={formData.transmission} onChange={handleChange}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+              className="input-field cursor-pointer"
             >
               <option value="Manual">Manual</option>
               <option value="Automática">Automática</option>
             </select>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Color</label>
-            <input 
-              name="color" value={formData.color} onChange={handleChange}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" 
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Estado</label>
-            <select 
-              name="status" value={formData.status} onChange={handleChange}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="Disponible">Disponible</option>
-              <option value="Reservado">Reservado</option>
-              <option value="Vendido">Vendido</option>
-            </select>
-          </div>
-
-          <div className="md:col-span-2 space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Descripción</label>
+          <div className="md:col-span-2 space-y-1.5">
+            <label className="text-[11px] font-black uppercase text-slate-400 tracking-wider ml-1">Notas / Descripción</label>
             <textarea 
               name="description" value={formData.description} onChange={handleChange} rows="3"
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+              className="input-field resize-none"
+              placeholder="Detalles adicionales del vehículo..."
             ></textarea>
           </div>
 
-          <div className="md:col-span-2 flex justify-end gap-3 pt-6 border-t border-slate-100">
+          <div className="md:col-span-2 flex justify-end gap-3 pt-8 mt-4 border-t border-slate-50">
             <button type="button" onClick={onClose} className="btn-secondary">Cancelar</button>
             <button type="submit" className="btn-primary">
               <Save size={18} />

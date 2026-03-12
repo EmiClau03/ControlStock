@@ -51,27 +51,27 @@ const PhotoManager = ({ vehicle, onClose, onChange }) => {
   return (
     <div className="modal-overlay">
       <div className="modal-content !max-w-4xl">
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+        <div className="p-8 border-b border-slate-50 flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">Fotos: {vehicle.brand} {vehicle.model}</h2>
-            <p className="text-sm text-slate-500">{photos.length} imágenes cargadas</p>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight leading-none">{vehicle.brand} <span className="text-slate-400 font-medium">{vehicle.model}</span></h2>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-2">{photos.length} ARCHIVOS MULTIMEDIA</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-            <X size={20} />
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition-all active:scale-90">
+            <X size={24} className="text-slate-400" />
           </button>
         </div>
 
         <div className="p-6">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {/* Upload Button */}
-            <label className="aspect-square rounded-xl border-2 border-dashed border-slate-200 hover:border-blue-500 hover:bg-blue-50 transition-all flex flex-col items-center justify-center cursor-pointer group">
+            <label className="aspect-square rounded-3xl border-2 border-dashed border-slate-200 hover:border-slate-900 hover:bg-slate-50 transition-all duration-300 flex flex-col items-center justify-center cursor-pointer group shadow-inner">
               <input type="file" multiple accept="image/*" className="hidden" onChange={handleFileUpload} disabled={uploading} />
               {uploading ? (
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
               ) : (
                 <>
-                  <Plus size={32} className="text-slate-300 group-hover:text-blue-500 mb-2" />
-                  <span className="text-xs font-semibold text-slate-400 group-hover:text-blue-600">Agregar fotos</span>
+                  <Plus size={32} className="text-slate-300 group-hover:text-slate-900 transition-colors duration-300" />
+                  <span className="text-[10px] font-black uppercase tracking-tighter text-slate-400 group-hover:text-slate-900 mt-2">Cargar Fotos</span>
                 </>
               )}
             </label>

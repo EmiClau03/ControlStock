@@ -55,10 +55,10 @@ const ExcelImport = ({ onClose, onImported }) => {
               <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-6">
                 <FileSpreadsheet size={32} />
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Selecciona tu archivo .xlsx</h3>
-              <p className="text-slate-500 mt-2 mb-8 text-sm">
+              <h3 className="text-xl font-black text-slate-900 tracking-tight">Selecciona tu archivo .xlsx</h3>
+              <p className="text-slate-500 mt-2 mb-8 text-sm font-medium">
                 Asegúrate de que las columnas coincidan: <br/>
-                <span className="font-mono text-xs bg-slate-100 px-1 rounded">
+                <span className="font-mono text-[10px] bg-slate-100 px-2 py-1 rounded-md text-slate-600 mt-2 inline-block border border-slate-200">
                   marca | modelo | año | color | patente | km | precio (ARS) | combustible | Estado Comercial
                 </span>
               </p>

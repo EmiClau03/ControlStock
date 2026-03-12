@@ -1,36 +1,76 @@
 @import "tailwindcss";
 
 :root {
-  --primary: #2563eb;
-  --secondary: #64748b;
-  --accent: #f59e0b;
+  --primary: #0f172a;
+  --accent: #2563eb;
+  --accent-soft: #dbeafe;
   --background: #f8fafc;
+  --success: #10b981;
+  --glass: rgba(255, 255, 255, 0.8);
 }
 
-body {
-  background-color: var(--background);
-  color: #1e293b;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+    font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  }
 }
 
 @layer components {
   .table-container {
-    @apply overflow-x-auto rounded-xl shadow-sm border border-slate-200 bg-white;
+    @apply w-full overflow-x-auto rounded-2xl bg-white/70 backdrop-blur-md border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-300;
+  }
+
+  .premium-card {
+    @apply bg-white rounded-2xl shadow-sm border border-slate-100 p-6 transition-all duration-300 hover:shadow-md;
   }
 
   .btn-primary {
-    @apply px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2;
+    @apply px-5 py-2.5 bg-slate-900 text-white rounded-xl hover:bg-slate-800 active:scale-95 transition-all duration-200 flex items-center gap-2 font-semibold shadow-sm;
   }
 
   .btn-secondary {
-    @apply px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors flex items-center gap-2;
+    @apply px-5 py-2.5 bg-white text-slate-700 border border-slate-200 rounded-xl hover:bg-slate-50 active:scale-95 transition-all duration-200 flex items-center gap-2 font-semibold;
+  }
+
+  .btn-action {
+    @apply p-2 rounded-lg transition-all duration-200 hover:bg-slate-100;
   }
 
   .modal-overlay {
-    @apply fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4;
+    @apply fixed inset-0 bg-slate-900/40 backdrop-blur-[6px] flex items-center justify-center z-50 p-4 transition-all duration-500 animate-in fade-in;
   }
 
   .modal-content {
-    @apply bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto;
+    @apply bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-white/20 animate-in zoom-in-95 duration-300;
   }
+
+  .input-field {
+    @apply w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 text-slate-700 placeholder:text-slate-400;
+  }
+
+  .status-badge {
+    @apply px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border transition-all;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-1.5 h-1.5;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-slate-100;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-full hover:bg-slate-400 transition-colors;
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0px); }
 }
